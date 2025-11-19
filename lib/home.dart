@@ -17,9 +17,10 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   final MapController _mapController = MapController();
 
   LatLng _center = const LatLng(48.8566, 2.3522);
-  String _cityName = 'Paris';
-  String _latitude = '48.8566';
-  String _longitude = '2.3522';
+
+  String _cityName = '';
+  String _latitude = '';
+  String _longitude = '';
   
   
   List<Map<String, dynamic>> categories = [
@@ -29,6 +30,11 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     {'name': 'Gares', 'selected': false},
     {'name': 'Universités', 'selected': false},
   ];
+
+   List<Map<String, dynamic>> selectedPoi =  [
+    {'name': 'Parc Central', 'latitude': 48.8606, 'longitude': 2.3376},
+    {'name': 'Restaurant Le Gourmet', 'latitude': 48.8584, 'longitude': 2.2945},
+   ];
 
   List<Map<String, dynamic>> favoritePlaces = [
     {
@@ -54,35 +60,13 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     _getCurrentLocation();
   }
 
+  //j'ai l Erreur lors de la récupération de la localisation : MissingPluginException(No implementation found for method getCurrentPosition on channel 
+  //flutter.baseflow.com/geolocator)
+  
   Future<void> _getCurrentLocation() async {
     try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Activer le service de localisation')),
-        );
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Permission de localisation refusée')),
-          );
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permission de localisation bloquée')),
-        );
-        return;
-      }
-
-      Position position = await Geolocator.getCurrentPosition();
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
       setState(() {
         _center = LatLng(position.latitude, position.longitude);
         _latitude = position.latitude.toString();
@@ -90,12 +74,11 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
       });
       _mapController.move(_center, 12.0);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Erreur lors de l\'obtention de la localisation')),
-      );
+      print("Erreur lors de la récupération de la localisation : $e");
     }
   }
+ 
+  
 
   Future<List<dynamic>> _getCoordinates(String city) async {
     final url = Uri.parse(
@@ -186,6 +169,96 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     });
   }
 
+  Future<Map<String, dynamic>> getPoiData() async {
+
+    List<dynamic> location = await _getCoordinates(_cityController.text);
+    final double lat = location[0];
+    final double lon = location[1];
+    final double lat1 = lat - 0.01;
+    final double lon1 = lon - 0.01;
+    final double lat2 = lat + 0.01;
+    final double lon2 = lon + 0.01;
+    
+    final query = '''
+      [out:json];
+      (
+        node["leisure"="park"]($lat1,$lon1,$lat2,$lon2);
+        node["amenity"="restaurant"]($lat1,$lon1,$lat2,$lon2);
+        node["tourism"="museum"]($lat1,$lon1,$lat2,$lon2);
+        node["railway"="station"]($lat1,$lon1,$lat2,$lon2);
+        node["amenity"="university"]($lat1,$lon1,$lat2,$lon2);
+      );
+      out;
+      ''';
+
+    final url = Uri.parse(
+      "https://overpass-api.de/api/interpreter?data=${Uri.encodeComponent(query)}",
+    );
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data;
+    } else {
+      throw Exception("Erreur lors de la récupération des données POI");
+    }
+  }
+// Filtrage des POI par catégorie avec leur coordonnée comprise
+  Map<String, List<Map<String, dynamic>>> poiDataFilter( Map<String, dynamic> poiData){
+    Map<String, List<Map<String, dynamic>>> categorizedPOIs = {
+      'Parcs': [],
+      'Restaurants': [],
+      'Musées': [],
+      'Gares': [],
+      'Universités': [],
+    };
+
+    for (var element in poiData['elements']) {
+      String? name = element['tags'] != null ? element['tags']['name'] : 'Inconnu';
+      double lat = element['lat'];
+      double lon = element['lon'];
+      Map<String, dynamic> poiInfo = {
+        'name': name,
+        'latitude': lat,
+        'longitude': lon,
+      };
+
+      if (element['tags'] != null) {
+        if (element['tags']['leisure'] == 'park') {
+          categorizedPOIs['Parcs']!.add(poiInfo);
+        } else if (element['tags']['amenity'] == 'restaurant') {
+          categorizedPOIs['Restaurants']!.add(poiInfo);
+        } else if (element['tags']['tourism'] == 'museum') {
+          categorizedPOIs['Musées']!.add(poiInfo);
+        } else if (element['tags']['railway'] == 'station') {
+          categorizedPOIs['Gares']!.add(poiInfo);
+        } else if (element['tags']['amenity'] == 'university') {
+          categorizedPOIs['Universités']!.add(poiInfo);
+        }
+      }
+    }
+
+    return categorizedPOIs;
+  }
+
+  void _updatePoiData(Map<String, List<Map<String, dynamic>>> categorizedPOIs) {
+    // Mettre à jour l'interface utilisateur avec les POI filtrés
+    // Par exemple, afficher les POI sur la carte 
+    setState(() {
+      // Mettre à jour l'état avec les POI filtrés en prenant entre 4 et le min par catégorie
+      selectedPoi = [];
+      for (var category in categories) {
+        if (category['selected']) {
+          String catName = category['name'];
+          List<Map<String, dynamic>> pois = categorizedPOIs[catName] ?? [];
+          selectedPoi.addAll(pois.take(4));
+        }
+      }
+      
+    });
+  } 
+
+
+
   Future<void> _searchCity() async {
     try {
       if (_cityController.text.trim().isEmpty) {
@@ -202,7 +275,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
           _center = LatLng(location[0], location[1]);
           _latitude = location[0].toString();
           _longitude = location[1].toString();
-          _cityName = _cityController.text;
+          _cityName = _cityController.text; 
         });
         _mapController.move(_center, 12.0);
       } else {
@@ -342,7 +415,11 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                               for (var cat in categories) {
                                 cat['selected'] = false;
                               }
+                              getPoiData().then((poiData) =>  
+                                _updatePoiData(poiDataFilter(poiData))
+                              );
                               categories[index]['selected'] = true;
+                              
                             });
                           },
                           child: Container(
@@ -410,6 +487,17 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                             size: 40,
                           ),
                         ),
+                        
+                        // Marqueurs pour les POI sélectionnés
+                        for (var poi in selectedPoi)
+                          Marker(
+                            point: LatLng(poi['latitude'], poi['longitude']),
+                            child: const Icon(
+                              Icons.place,
+                              color: Colors.blue,
+                              size: 30,
+                            ),
+                          ),
                       ],
                     ),
                   ],
