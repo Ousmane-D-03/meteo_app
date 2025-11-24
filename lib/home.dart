@@ -115,7 +115,6 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   }
 
 
-
   Map<String, dynamic> weatherData = {
     'temp': '--',
     'condition': '--',
