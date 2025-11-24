@@ -58,6 +58,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   void initState() {
     super.initState();
     _getCurrentLocation();
+    getWeatherData().then((data) => _updateWeatherData(data));
   }
 
   //j'ai l Erreur lors de la récupération de la localisation : MissingPluginException(No implementation found for method getCurrentPosition on channel 
@@ -71,10 +72,23 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
         _center = LatLng(position.latitude, position.longitude);
         _latitude = position.latitude.toString();
         _longitude = position.longitude.toString();
+        _cityName = _getCityName(position.latitude, position.longitude) as String;
       });
       _mapController.move(_center, 12.0);
     } catch (e) {
       print("Erreur lors de la récupération de la localisation : $e");
+    }
+  }
+
+ Future<String> _getCityName(double lat, double lon) async {
+    final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lon&format=json');
+    final response = await http.get(url, headers: {'User-Agent': 'FlutterApp'});
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['address']['city'] ?? data['address']['town'] ?? data['address']['village'] ?? 'Ville inconnue';
+    } else {
+      throw Exception("Erreur lors de la récupération du nom de la ville");
     }
   }
  
