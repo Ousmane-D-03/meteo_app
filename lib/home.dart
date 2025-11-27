@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:meteo_app/services/geolocation_service.dart';
+import 'package:meteo_app/services/geocoding_service.dart';
+import 'package:meteo_app/services/weather_service.dart';
+import 'package:meteo_app/services/poi_service.dart';
 
 class MapSearchScreen extends StatefulWidget {
   const MapSearchScreen({super.key});
@@ -66,13 +68,13 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   
   Future<void> _getCurrentLocation() async {
     try {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+      Position position = await GeolocationService.getCurrentPosition();
+      final city = await GeocodingService.reverseGeocode(position.latitude, position.longitude);
       setState(() {
         _center = LatLng(position.latitude, position.longitude);
         _latitude = position.latitude.toString();
         _longitude = position.longitude.toString();
-        _cityName = _getCityName(position.latitude, position.longitude) as String;
+        _cityName = city;
       });
       _mapController.move(_center, 12.0);
     } catch (e) {
@@ -81,51 +83,18 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   }
 
  Future<String> _getCityName(double lat, double lon) async {
-    final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lon&format=json');
-    final response = await http.get(url, headers: {'User-Agent': 'FlutterApp'});
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['address']['city'] ?? data['address']['town'] ?? data['address']['village'] ?? 'Ville inconnue';
-    } else {
-      throw Exception("Erreur lors de la récupération du nom de la ville");
-    }
+    return await GeocodingService.reverseGeocode(lat, lon);
   }
  
   
 
   Future<List<dynamic>> _getCoordinates(String city) async {
-    final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=$city&format=json&limit=1');
-    final response = await http.get(url, headers: {'User-Agent': 'FlutterApp'});
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data.isNotEmpty) {
-        final lat = double.parse(data[0]['lat']);
-        final lon = double.parse(data[0]['lon']);
-        final displayName = data[0]['display_name'] ?? city;
-        return [lat, lon, displayName];
-      }
-    }
-    throw Exception("Aucune coordonnée trouvée pour $city");
+    return await GeocodingService.forwardGeocode(city);
   }
 
   Future<Map<String, dynamic>> getWeatherData() async{
     List<dynamic> location = await _getCoordinates(_cityController.text);
-    final url  = Uri.parse(
-                  'https://api.open-meteo.com/v1/forecast?latitude=${location[0]}&longitude=${location[1]}'
-                  '&current_weather=true'
-                  '&hourly=temperature_2m,relative_humidity_2m,precipitation,windspeed_10m'
-                  '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum'
-                  '&timezone=auto'
-                );
-    final response =  await http.get(url);
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data;
-    } else {
-      throw Exception("Erreur lors de la récupération des données météo");
-    }
+    return await WeatherService.fetchWeatherDataByCoords(location[0], location[1]);
   }
 
 
@@ -184,74 +153,11 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   }
 
   Future<Map<String, dynamic>> getPoiData() async {
-
-    List<dynamic> location = await _getCoordinates(_cityController.text);
-    final double lat = location[0];
-    final double lon = location[1];
-    final double lat1 = lat - 0.01;
-    final double lon1 = lon - 0.01;
-    final double lat2 = lat + 0.01;
-    final double lon2 = lon + 0.01;
-    
-    final query = '''
-      [out:json];
-      (
-        node["leisure"="park"]($lat1,$lon1,$lat2,$lon2);
-        node["amenity"="restaurant"]($lat1,$lon1,$lat2,$lon2);
-        node["tourism"="museum"]($lat1,$lon1,$lat2,$lon2);
-        node["railway"="station"]($lat1,$lon1,$lat2,$lon2);
-        node["amenity"="university"]($lat1,$lon1,$lat2,$lon2);
-      );
-      out;
-      ''';
-
-    final url = Uri.parse(
-      "https://overpass-api.de/api/interpreter?data=${Uri.encodeComponent(query)}",
-    );
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data;
-    } else {
-      throw Exception("Erreur lors de la récupération des données POI");
-    }
+    return await PoiService.fetchPoiDataForCity(_cityController.text);
   }
 // Filtrage des POI par catégorie avec leur coordonnée comprise
   Map<String, List<Map<String, dynamic>>> poiDataFilter( Map<String, dynamic> poiData){
-    Map<String, List<Map<String, dynamic>>> categorizedPOIs = {
-      'Parcs': [],
-      'Restaurants': [],
-      'Musées': [],
-      'Gares': [],
-      'Universités': [],
-    };
-
-    for (var element in poiData['elements']) {
-      String? name = element['tags'] != null ? element['tags']['name'] : 'Inconnu';
-      double lat = element['lat'];
-      double lon = element['lon'];
-      Map<String, dynamic> poiInfo = {
-        'name': name,
-        'latitude': lat,
-        'longitude': lon,
-      };
-
-      if (element['tags'] != null) {
-        if (element['tags']['leisure'] == 'park') {
-          categorizedPOIs['Parcs']!.add(poiInfo);
-        } else if (element['tags']['amenity'] == 'restaurant') {
-          categorizedPOIs['Restaurants']!.add(poiInfo);
-        } else if (element['tags']['tourism'] == 'museum') {
-          categorizedPOIs['Musées']!.add(poiInfo);
-        } else if (element['tags']['railway'] == 'station') {
-          categorizedPOIs['Gares']!.add(poiInfo);
-        } else if (element['tags']['amenity'] == 'university') {
-          categorizedPOIs['Universités']!.add(poiInfo);
-        }
-      }
-    }
-
-    return categorizedPOIs;
+    return PoiService.filterPoiData(poiData);
   }
 
   void _updatePoiData(Map<String, List<Map<String, dynamic>>> categorizedPOIs) {
