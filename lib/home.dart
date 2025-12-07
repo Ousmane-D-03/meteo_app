@@ -60,7 +60,6 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   void initState() {
     super.initState();
     _getCurrentLocation();
-    getWeatherData().then((data) => _updateWeatherData(data));
   }
 
   //j'ai l Erreur lors de la récupération de la localisation : MissingPluginException(No implementation found for method getCurrentPosition on channel 
@@ -75,6 +74,8 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
         _latitude = position.latitude.toString();
         _longitude = position.longitude.toString();
         _cityName = city;
+        _cityController.text = city;
+        getWeatherData().then((data) => _updateWeatherData(data));
       });
       _mapController.move(_center, 12.0);
     } catch (e) {
