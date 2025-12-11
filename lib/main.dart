@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:meteo_app/home.dart';
-
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'dart:io';
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialisation spéciale pour Windows, Mac, Linux
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
   runApp(const MyApp());
 }
 
