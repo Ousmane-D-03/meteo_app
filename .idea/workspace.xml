@@ -5,8 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ad1efb17-8f6f-4f08-97fd-69c9d118742b" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources/35c73b3f-5521-47f1-8e03-919f41a5f594.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources/35c73b3f-5521-47f1-8e03-919f41a5f594/storage_v2/_src_/schema/main.uQUzAA.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources/7c90707a-db50-4e02-8643-f10529a4b83c.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources/7c90707a-db50-4e02-8643-f10529a4b83c/storage_v2/_src_/schema/main.uQUzAA.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources/c54705f5-d0a7-45b7-8ebc-58829d52f75d.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources/c54705f5-d0a7-45b7-8ebc-58829d52f75d/storage_v2/_src_/schema/main.uQUzAA.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/database/models/cache.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/database/models/favori.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/database/providers/cache_provider.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/database/providers/favori_provider.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/services/autre.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/home.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/home.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/services/poi_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/poi_service.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/meteo_app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/meteo_app.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
     </list>
@@ -35,12 +52,17 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Dart File" />
+        <option value="Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$USER_HOME$/AppData/Local/JetBrains/IntelliJIdea2024.1/device-explorer/Pixel 3 API 35/_/data/data/com.example.meteo_app/databases/explore_ville.db-journal" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\php8\php.exe" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -60,24 +82,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Flutter.main.dart.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "main",
-    "io.flutter.reload.alreadyRun": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/papay/Documents/PROJET_GIT/Flutter/meteo_app",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "show.migrate.to.gradle.popup": "false",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Flutter.main.dart.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;branch__with__database&quot;,
+    &quot;io.flutter.reload.alreadyRun&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/papay/Documents/PROJET_GIT/Flutter/meteo_app&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\papay\Documents\PROJET_GIT\Flutter\meteo_app\lib\database\models" />
+      <recent name="C:\Users\papay\Documents\PROJET_GIT\Flutter\meteo_app\lib\databas\models" />
+      <recent name="C:\Users\papay\Documents\PROJET_GIT\Flutter\meteo_app\lib\databas" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -95,6 +124,15 @@
       <option name="presentableId" value="Default" />
       <updated>1763988301999</updated>
       <workItem from="1765050113086" duration="1942000" />
+      <workItem from="1765374094354" duration="11330000" />
+      <workItem from="1765403023219" duration="1159000" />
+      <workItem from="1765404218352" duration="929000" />
+      <workItem from="1765405185434" duration="3979000" />
+      <workItem from="1765409471135" duration="2231000" />
+      <workItem from="1765411956674" duration="452000" />
+      <workItem from="1765412428584" duration="710000" />
+      <workItem from="1765413153646" duration="163000" />
+      <workItem from="1765413327516" duration="560000" />
     </task>
     <servers />
   </component>

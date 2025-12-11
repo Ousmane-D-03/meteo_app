@@ -53,23 +53,28 @@ class PoiService {
         'name': name,
         'latitude': lat,
         'longitude': lon,
+        'category': 'Parcs', // ou Restaurants, Musées, etc.
       };
 
       if (element['tags'] != null) {
         if (element['tags']['leisure'] == 'park') {
+          poiInfo['category'] = 'Parcs';
           categorizedPOIs['Parcs']!.add(poiInfo);
         } else if (element['tags']['amenity'] == 'restaurant') {
+          poiInfo['category'] = 'Restaurants';
           categorizedPOIs['Restaurants']!.add(poiInfo);
         } else if (element['tags']['tourism'] == 'museum') {
+          poiInfo['category'] = 'Musées';
           categorizedPOIs['Musées']!.add(poiInfo);
         } else if (element['tags']['railway'] == 'station') {
+          poiInfo['category'] = 'Gares';
           categorizedPOIs['Gares']!.add(poiInfo);
         } else if (element['tags']['amenity'] == 'university') {
+          poiInfo['category'] = 'Universités';
           categorizedPOIs['Universités']!.add(poiInfo);
         }
       }
     }
-
     return categorizedPOIs;
-  }
+}
 }
