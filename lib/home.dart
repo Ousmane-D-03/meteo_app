@@ -6,6 +6,7 @@ import 'package:meteo_app/services/geolocation_service.dart';
 import 'package:meteo_app/services/geocoding_service.dart';
 import 'package:meteo_app/services/weather_service.dart';
 import 'package:meteo_app/services/poi_service.dart';
+import 'package:meteo_app/city_info_page.dart';
 
 class MapSearchScreen extends StatefulWidget {
   const MapSearchScreen({super.key});
@@ -210,6 +211,8 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
       );
     }
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -425,6 +428,39 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
               ),
 
               const SizedBox(height: 24),
+
+              // 🎯 NOUVEAU BOUTON ICI !
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CityInfoPage(
+                          initialCityName: _cityName,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.info_outline),
+                  label: const Text('Informations détaillées'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
 
               // Mes Lieux Favoris
               const Padding(

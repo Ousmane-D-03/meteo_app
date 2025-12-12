@@ -1,0 +1,49 @@
+ Future<void> _loadCityInfo(String cityName) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      print('🔍 Chargement des infos pour : $cityName');
+      
+      // ÉTAPE 1 : Récupérer les données de base depuis Wikidata
+      final wikidataData = await WikidataService.fetchCityInfo(cityName);
+
+      if (wikidataData == null) {
+        setState(() {
+          _errorMessage = 'Impossible de trouver "$cityName" sur Wikidata';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // ÉTAPE 2 : Récupérer l'historique et les monuments depuis Wikipedia
+      print('Chargement des infos Wikipedia...');
+      final wikipediaData = await WikipediaService.fetchCityCompleteInfo(cityName);
+
+      // Fusionner les données
+      final combinedData = {
+        ...wikidataData,
+        if (wikipediaData != null) ...{
+          'history': wikipediaData['history'],
+          'monuments': wikipediaData['monuments'],
+        }
+      };
+
+      setState(() {
+        _currentCity = CityInfo.fromJson(combinedData);
+        _isLoading = false;
+      });
+      
+      print('Chargement terminé : ${_currentCity!.monuments.length} monuments');
+
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erreur lors du chargement : $e';
+        _isLoading = false;
+      });
+      print('Erreur : $e');
+    }
+  }
+
