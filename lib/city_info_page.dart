@@ -426,9 +426,9 @@ class _CityInfoPageState extends State<CityInfoPage> {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 2.2,  // ✨ Augmenté de 1.5 à 2.2 (plus large, moins haut)
-        crossAxisSpacing: 10,    // ✨ Réduit de 12 à 10
-        mainAxisSpacing: 10,     // ✨ Réduit de 12 à 10
+        childAspectRatio: 2.2,  
+        crossAxisSpacing: 9,    
+        mainAxisSpacing: 9,      
       ),
       itemCount: infos.length,
       itemBuilder: (context, index) => _buildInfoCard(infos[index]),
@@ -437,19 +437,19 @@ class _CityInfoPageState extends State<CityInfoPage> {
 
   Widget _buildInfoCard(_InfoItem item) {
     return Container(
-      padding: const EdgeInsets.all(12),  // ✨ Réduit de 16 à 12
+      padding: const EdgeInsets.all(12),  
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),  // ✨ Réduit de 20 à 16
+        borderRadius: BorderRadius.circular(16),  
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,  // ✨ Réduit de 10 à 8
+            blurRadius: 8, 
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Row(  // ✨ Changé de Column à Row pour layout horizontal
+      child: Row(  
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -457,7 +457,7 @@ class _CityInfoPageState extends State<CityInfoPage> {
               color: item.color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(item.icon, color: item.color, size: 20),  // ✨ Réduit de 24 à 20
+            child: Icon(item.icon, color: item.color, size: 20),  
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -468,15 +468,15 @@ class _CityInfoPageState extends State<CityInfoPage> {
                 Text(
                   item.label,
                   style: TextStyle(
-                    fontSize: 11,  // ✨ Réduit de 12 à 11
-                    color: Colors.grey[600],
+                    fontSize: 11,  
+                   color: Colors.grey[600],
                   ),
                 ),
-                const SizedBox(height: 2),  // ✨ Réduit de 4 à 2
+                const SizedBox(height: 2),  
                 Text(
                   item.value,
                   style: const TextStyle(
-                    fontSize: 15,  // ✨ Réduit de 16 à 15
+                    fontSize: 15,  
                     fontWeight: FontWeight.bold,
                   ),
                   maxLines: 1,

@@ -24,6 +24,8 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   String _cityName = '';
   String _latitude = '';
   String _longitude = '';
+  String? _selectedPoiName;
+
   
   
   List<Map<String, dynamic>> categories = [
@@ -411,16 +413,61 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                           ),
                         ),
                         
-                        // Marqueurs pour les POI sélectionnés
-                        for (var poi in selectedPoi)
-                          Marker(
-                            point: LatLng(poi['latitude'], poi['longitude']),
-                            child: const Icon(
-                              Icons.place,
-                              color: Colors.blue,
-                              size: 30,
-                            ),
+                      for (var poi in selectedPoi)
+                      Marker(
+                        point: LatLng(poi['latitude'], poi['longitude']),
+                        width: 300,
+                        height: 60,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (_selectedPoiName == poi['name']) {
+                                _selectedPoiName = null; // cacher si déjà affiché
+                              } else {
+                                _selectedPoiName = poi['name']; // afficher
+                              }
+                            });
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_selectedPoiName == poi['name'])
+                                Container(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 4,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    poi['name'],
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+
+                              const SizedBox(height: 2),
+
+                              
+                              const Icon(
+                                Icons.place,
+                                color: Colors.blue,
+                                size: 30,
+                              ),
+                            ],
                           ),
+                        ),
+                      ),
+
+                        
                       ],
                     ),
                   ],
@@ -429,7 +476,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 
               const SizedBox(height: 24),
 
-              // 🎯 NOUVEAU BOUTON ICI !
+            
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: SizedBox(
