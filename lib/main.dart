@@ -2,17 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:meteo_app/home.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io';
-void main() {
+import 'package:provider/provider.dart';
+import 'package:meteo_app/database/providers/favori_notifier.dart';
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialisation spéciale pour Windows, Mac, Linux
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
 
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => FavoriteNotifier()..init(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

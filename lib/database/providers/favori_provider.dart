@@ -25,19 +25,6 @@ class FavoriteProvider {
     );
   }
 
-  Future<bool> isFavorite(String name) async {
-      List<Map<String, dynamic>> maps = await db!.query(
-        tableName,
-        where: 'name = ?',
-        whereArgs: [name],
-      );
-      return maps.isNotEmpty;
-    }
-  Future<void> toggleFavorite(Favorite fav) async {
-    fav.isFavorite = !fav.isFavorite;
-    await db!.update('favorites', fav.toMap(),
-        where: 'id = ?', whereArgs: [fav.id]);
-  }
 
     Future<Favorite> insert(Favorite fav) async {
       fav.id = await db!.insert(tableName, fav.toMap());

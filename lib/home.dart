@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:meteo_app/database/providers/cache_provider.dart';
 import 'package:meteo_app/services/geolocation_service.dart';
 import 'package:meteo_app/services/geocoding_service.dart';
 import 'package:meteo_app/services/weather_service.dart';
 import 'package:meteo_app/services/poi_service.dart';
 import 'package:meteo_app/database/providers/favori_provider.dart';
 import 'package:meteo_app/database/models/favori.dart';
+import 'package:provider/provider.dart';
+import 'package:meteo_app/database/providers/favori_notifier.dart';
 
 class MapSearchScreen extends StatefulWidget {
   const MapSearchScreen({super.key});
@@ -22,8 +23,6 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   final MapController _mapController = MapController();
   FavoriteProvider favoriteProvider = FavoriteProvider();
   List<Favorite> allPlaces = [];
-
-  //bool isFavoritePlace = false;
 
   LatLng _center = const LatLng(48.8566, 2.3522);
 
@@ -75,23 +74,10 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     await favoriteProvider.open();
   }
 
-  Future<void> _savePoiToDatabase(List<Map<String, dynamic>> pois, String city) async {
-    for (var poi in pois) {
-      // Vérifie si le POI existe déjà
-      bool exists = allPlaces.any((f) => f.name == poi['name']);
-      if (!exists) {
-        Favorite newFav = Favorite(
-          name: poi['name'],
-          latitude: poi['latitude'],
-          longitude: poi['longitude'],
-          city: city,
-          category: poi['category'] ?? 'Autre',
-          isFavorite: false,
-        );
-        await favoriteProvider.insert(newFav);
-        allPlaces.add(newFav); // Ajoute à la liste mémoire
-      }
-    }
+  //Récupération des lieux existants depuis la base de données au lieu de l'API
+  Future<void> _loadExistingPlaces() async {
+    allPlaces = await favoriteProvider.getAllFavorites();
+    setState(() {}); // rafraîchit l'UI
   }
 
   //j'ai l Erreur lors de la récupération de la localisation : MissingPluginException(No implementation found for method getCurrentPosition on channel
@@ -207,7 +193,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
         'temp': data['current_weather']['temperature'].toString(),
         'condition': decodeWeatherCode(data['current_weather']['weathercode']),
         'minMax':
-            '${data['daily']['temperature_2m_min'][0]}/${data['daily']['temperature_2m_max'][0]}',
+        '${data['daily']['temperature_2m_min'][0]}/${data['daily']['temperature_2m_max'][0]}',
         'humidity': '${data['hourly']['relative_humidity_2m'][0]}%',
         'wind': '${data['current_weather']['windspeed']} km/h',
       };
@@ -220,8 +206,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 
   // Filtrage des POI par catégorie avec leur coordonnée comprise
   Map<String, List<Map<String, dynamic>>> poiDataFilter(
-    Map<String, dynamic> poiData,
-  ) {
+      Map<String, dynamic> poiData,) {
     return PoiService.filterPoiData(poiData);
   }
 
@@ -241,12 +226,46 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
         }
       }
     });
-    _savePoiToDatabase(selectedPoi, _cityName);
+    final favoriteNotifier1 = context.read<FavoriteNotifier>();
+    favoriteNotifier1.savePoi(selectedPoi, _cityName);
+  }
+
+  Future<void> _addPlace() async {
+    if (_cityName.isEmpty ||
+        _latitude.isEmpty ||
+        _longitude.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez rechercher une ville valide avant d\'ajouter un lieu.'),
+        ),
+      );
+      return;
+    }
+
+    Favorite newPlace = Favorite(
+      name: _cityName,
+      category: 'Autre',
+      latitude: double.parse(_latitude),
+      longitude: double.parse(_longitude),
+      city: _cityName,
+      isFavorite: false,
+    );
+
+    final favoriteNotifier = context.read<FavoriteNotifier>();
+    await favoriteNotifier.toggleFavorite1(newPlace);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Lieu "${_cityName}" ajouté avec succès.'),
+      ),
+    );
   }
 
   Future<void> _searchCity() async {
     try {
-      if (_cityController.text.trim().isEmpty) {
+      if (_cityController.text
+          .trim()
+          .isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Veuillez entrer un nom de ville valide.'),
@@ -280,6 +299,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final favoriteNotifier = context.watch<FavoriteNotifier>();
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
@@ -406,7 +426,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                 cat['selected'] = false;
                               }
                               getPoiData().then(
-                                (poiData) =>
+                                    (poiData) =>
                                     _updatePoiData(poiDataFilter(poiData)),
                               );
                               categories[index]['selected'] = true;
@@ -419,18 +439,18 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                             ),
                             decoration: BoxDecoration(
                               color:
-                                  category['selected']
-                                      ? Colors.blue
-                                      : Colors.grey[300],
+                              category['selected']
+                                  ? Colors.blue
+                                  : Colors.grey[300],
                               borderRadius: BorderRadius.circular(25),
                             ),
                             child: Text(
                               category['name'],
                               style: TextStyle(
                                 color:
-                                    category['selected']
-                                        ? Colors.white
-                                        : Colors.black87,
+                                category['selected']
+                                    ? Colors.white
+                                    : Colors.black87,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -483,57 +503,45 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-
-                            // Icône favori par POI
                             IconButton(
                               onPressed: () async {
-                                // Cherche si le POI existe déjà dans allPlaces
-                                Favorite? fav = allPlaces.firstWhere(
-                                  (f) => f.name == poi['name'],
-                                  orElse:
-                                      () => Favorite(
-                                        name: poi['name'],
-                                        latitude: poi['latitude'],
-                                        longitude: poi['longitude'],
-                                        city: _cityName,
-                                        category: poi['category'] ?? 'Autre',
-                                        isFavorite: false,
-                                      ),
+                                int index = favoriteNotifier.favorites.indexWhere(
+                                      (f) => f.name == poi['name'],
                                 );
 
-                                // Toggle isFavorite
-                                fav.isFavorite = !fav.isFavorite;
+                                if (index != -1) {
+                                  Favorite existingFav = favoriteNotifier.favorites[index];
 
-                                // Sauvegarde en base
-                                if (fav.id != null) {
-                                  await favoriteProvider.toggleFavorite(fav);
-                                } else {
-                                  await favoriteProvider.insert(fav);
-                                  allPlaces.add(
-                                    fav,
-                                  ); // ajoute à la liste mémoire
+                                  // Toggle via le notifier
+                                  await favoriteNotifier.toggleFavorite(existingFav);
+
+                                  // Affichage SnackBar
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        existingFav.isFavorite
+                                            ? "${poi['name']} ajouté aux favoris"
+                                            : "${poi['name']} retiré des favoris",
+                                      ),
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
                                 }
-
-                                setState(() {}); // rafraîchit l'UI
                               },
                               icon: Icon(
-                                // Utilise la liste locale pour déterminer l'état
-                                allPlaces.any(
-                                      (f) =>
-                                          f.name == poi['name'] && f.isFavorite,
-                                    )
+                                favoriteNotifier.isFavorite(poi['name'])
                                     ? Icons.star
                                     : Icons.star_border,
-                                color:
-                                    allPlaces.any(
-                                          (f) =>
-                                              f.name == poi['name'] &&
-                                              f.isFavorite,
-                                        )
-                                        ? Colors.amber
-                                        : Colors.grey,
+                                color: favoriteNotifier.isFavorite(poi['name'])
+                                    ? Colors.amber
+                                    : Colors.grey,
                               ),
-                            ),
+                            )
+
+
+
+
+
                           ],
                         ),
                       ),
@@ -566,7 +574,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                   children: [
                     TileLayer(
                       urlTemplate:
-                          "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
                       subdomains: const ['a', 'b', 'c', 'd'],
                     ),
                     MarkerLayer(
@@ -670,11 +678,56 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _searchCity,
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.search, color: Colors.white),
+
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            onPressed: _searchCity,
+            backgroundColor: Colors.blue,
+            child: const Icon(Icons.search, color: Colors.white),
+          ),
+          const SizedBox(height: 16),
+      FloatingActionButton(
+        heroTag: 'add_fab',
+        backgroundColor: Colors.green,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              TextEditingController controller = TextEditingController();
+
+              return AlertDialog(
+                title: const Text("Ajout d'un lieu favori"),
+                content: TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(
+                    hintText: "Mettez le nom du lieu",
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Annuler"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      print(controller.text); // ici tu récupères le texte
+                      Navigator.pop(context);
+                    },
+                    child: const Text("OK"),
+                  ),
+                ],
+              );
+            },
+          );
+        },
       ),
+        ],
+    ),
+
+
     );
   }
 
@@ -694,12 +747,11 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 }
 
 //Placecard
-Widget placeCard(
-  String placeName,
-  String cityName,
-  bool isFavoritePlace, {
-  required VoidCallback onFavoriteToggle,
-}) {
+Widget placeCard(String placeName,
+    String cityName,
+    bool isFavoritePlace, {
+      required VoidCallback onFavoriteToggle,
+    }) {
   return Card(
     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     child: Padding(

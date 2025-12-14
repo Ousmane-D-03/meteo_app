@@ -14,7 +14,7 @@ class Favorite {
     required this.latitude,
     required this.longitude,
     required this.city,
-    this.isFavorite = false,
+    this.isFavorite = false, // false: cache, true: favori
   });
   factory Favorite.fromMap(Map<String, dynamic> map) => Favorite(
         id: map['id'] as int?,

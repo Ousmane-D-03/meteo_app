@@ -58,7 +58,7 @@ child: Text(
 //import 'package:flutter_map/flutter_map.dart';
 //import 'package:latlong2/latlong.dart';
 //import 'package:geolocator/geolocator.dart';
-//import 'package:meteo_app/database/providers/cache_provider.dart';
+//import 'package:meteo_app/database/providers/favori_notifier.dart';
 //import 'package:meteo_app/services/geolocation_service.dart';
 //import 'package:meteo_app/services/geocoding_service.dart';
 //import 'package:meteo_app/services/weather_service.dart';
