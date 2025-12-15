@@ -10,6 +10,8 @@ import 'package:meteo_app/database/providers/favori_provider.dart';
 import 'package:meteo_app/database/models/favori.dart';
 import 'package:provider/provider.dart';
 import 'package:meteo_app/database/providers/favori_notifier.dart';
+import 'package:meteo_app/city_info_page.dart';
+
 
 class MapSearchScreen extends StatefulWidget {
   const MapSearchScreen({super.key});
@@ -29,6 +31,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   String _cityName = '';
   String _latitude = '';
   String _longitude = '';
+  String? _selectedPoiName;
 
   List<Map<String, dynamic>> categories = [
     {'name': 'Parcs', 'selected': false},
@@ -591,14 +594,59 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 
                         // Marqueurs pour les POI sélectionnés
                         for (var poi in selectedPoi)
-                          Marker(
-                            point: LatLng(poi['latitude'], poi['longitude']),
-                            child: const Icon(
-                              Icons.place,
-                              color: Colors.blue,
-                              size: 30,
-                            ),
+                      Marker(
+                        point: LatLng(poi['latitude'], poi['longitude']),
+                        width: 300,
+                        height: 60,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (_selectedPoiName == poi['name']) {
+                                _selectedPoiName = null; // cacher si déjà affiché
+                              } else {
+                                _selectedPoiName = poi['name']; // afficher
+                              }
+                            });
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_selectedPoiName == poi['name'])
+                                Container(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 4,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    poi['name'],
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+
+                              const SizedBox(height: 2),
+
+                              
+                              const Icon(
+                                Icons.place,
+                                color: Colors.blue,
+                                size: 30,
+                              ),
+                            ],
                           ),
+                        ),
+                      ),
+
                       ],
                     ),
                   ],
@@ -606,6 +654,43 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
               ),
 
               const SizedBox(height: 24),
+
+                
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CityInfoPage(
+                          initialCityName: _cityName,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.info_outline),
+                  label: const Text("Pour plus d'infos concernant la ville"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
+                ),
+              ),
+            ),
+
+
+
+            const SizedBox(height: 20),
+
+
 
               // Mes Lieux Favoris
               const Padding(
