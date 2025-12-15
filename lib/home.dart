@@ -11,6 +11,7 @@ import 'package:meteo_app/database/models/favori.dart';
 import 'package:provider/provider.dart';
 import 'package:meteo_app/database/providers/favori_notifier.dart';
 import 'package:meteo_app/city_info_page.dart';
+import 'package:meteo_app/services/preferences_service.dart';
 
 
 class MapSearchScreen extends StatefulWidget {
@@ -32,6 +33,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   String _latitude = '';
   String _longitude = '';
   String? _selectedPoiName;
+  bool _hasDefaultCity = false;
 
   List<Map<String, dynamic>> categories = [
     {'name': 'Parcs', 'selected': false},
@@ -70,18 +72,31 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   void initState() {
     super.initState();
     _initDb().then((_) => _loadFavorites());
-    _getCurrentLocation();
+    _loadInitialCity();
   }
 
   Future<void> _initDb() async {
     await favoriteProvider.open();
   }
+  
 
   //Récupération des lieux existants depuis la base de données au lieu de l'API
   Future<void> _loadExistingPlaces() async {
     allPlaces = await favoriteProvider.getAllFavorites();
     setState(() {}); // rafraîchit l'UI
   }
+
+  Future<void> _loadInitialCity() async {
+  final defaultCity = await PreferencesService.getDefaultCity();
+
+  if (defaultCity != null) {
+    await _defaultCity();
+    setState(() => _hasDefaultCity = true);
+  } else {
+    await _getCurrentLocation();
+    setState(() => _hasDefaultCity = false);
+  }
+}
 
   //j'ai l Erreur lors de la récupération de la localisation : MissingPluginException(No implementation found for method getCurrentPosition on channel
   //flutter.baseflow.com/geolocator)
@@ -203,6 +218,63 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     });
   }
 
+  Future<void> _checkIfDefaultCity() async {
+  final defaultCity = await PreferencesService.getDefaultCity();
+  setState(() {
+    _hasDefaultCity = defaultCity != null && 
+                      defaultCity['cityName'] == _cityName;
+  });
+  
+  }
+
+    /// NOUVELLE FONCTION : Définir comme ville par défaut
+  Future<void> _setAsDefaultCity() async {
+    final lat = double.parse(_latitude);
+    final lon = double.parse(_longitude);
+
+    final success = await PreferencesService.setDefaultCity(_cityName, lat, lon);
+
+    if (success) {
+      setState(() {
+        _hasDefaultCity = true;
+      });
+    }
+  }
+
+Future<void> _defaultCity() async {
+  final defaultCity = await PreferencesService.getDefaultCity();
+
+  if (defaultCity == null) return;
+
+  setState(() {
+    _center = LatLng(defaultCity['lat'], defaultCity['lon']);
+    _latitude = defaultCity['lat'].toString();
+    _longitude = defaultCity['lon'].toString();
+    _cityName = defaultCity['cityName'];
+    _cityController.text = defaultCity['cityName'];
+  });
+
+  final data = await getWeatherData();
+  _updateWeatherData(data);
+
+  _mapController.move(_center, 12.0);
+}
+
+
+
+
+  /// ✨ NOUVELLE FONCTION : Supprimer la ville par défaut
+  Future<void> _removeDefaultCity() async {
+    final success = await PreferencesService.clearDefaultCity();
+
+    if (success) {
+      setState(() {
+        _hasDefaultCity = false;
+      });
+
+    }
+  }
+
   Future<Map<String, dynamic>> getPoiData() async {
     return await PoiService.fetchPoiDataForCity(_cityController.text);
   }
@@ -284,6 +356,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
           _latitude = location[0].toString();
           _longitude = location[1].toString();
           _cityName = _cityController.text;
+          
         });
         _mapController.move(_center, 12.0);
       } else {
@@ -299,6 +372,35 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
       );
     }
   }
+
+    Future<void> _toggleDefaultCity() async {
+    if (_hasDefaultCity) {
+      // Supprimer la ville par défaut
+      final success = await PreferencesService.clearDefaultCity();
+      if (success) {
+        setState(() {
+          _hasDefaultCity = false;
+        });
+      }
+    } else {
+      // Définir la ville par défaut
+      final lat = double.parse(_latitude);
+      final lon = double.parse(_longitude);
+
+      final success = await PreferencesService.setDefaultCity(
+        _cityName,
+        lat,
+        lon,
+      );
+
+      if (success) {
+        setState(() {
+          _hasDefaultCity = true;
+        });
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -339,12 +441,53 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
               // Nom de la ville
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  _cityName,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  children: [
+                    // Nom de la ville
+                    Expanded(
+                      child: Text(
+                        _cityName,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    
+                    GestureDetector(
+                      onTap: _toggleDefaultCity,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _hasDefaultCity ? Colors.green[50] : Colors.blue[50],
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: _hasDefaultCity ? Colors.green[300]! : Colors.blue[300]!,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _hasDefaultCity ? Icons.star : Icons.star_border,
+                              size: 16,
+                              color: _hasDefaultCity ? Colors.green[700] : Colors.blue[700],
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _hasDefaultCity ? 'Par défaut' : 'Définir',
+                              style: TextStyle(
+                                color: _hasDefaultCity ? Colors.green[700] : Colors.blue[700],
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  ],
                 ),
               ),
 
