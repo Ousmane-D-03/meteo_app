@@ -5,14 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ad1efb17-8f6f-4f08-97fd-69c9d118742b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/c54705f5-d0a7-45b7-8ebc-58829d52f75d.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/c54705f5-d0a7-45b7-8ebc-58829d52f75d.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/database/models/favori.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/database/models/favori.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/database/providers/cache_provider.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/database/providers/favori_notifier.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/database/providers/favori_provider.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/database/providers/favori_provider.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/database/providers/favori_notifier.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/database/providers/favori_notifier.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/home.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/home.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/services/autre.java" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/autre.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

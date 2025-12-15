@@ -252,7 +252,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     );
 
     final favoriteNotifier = context.read<FavoriteNotifier>();
-    await favoriteNotifier.toggleFavorite1(newPlace);
+    await favoriteNotifier.toggleFavorite(newPlace);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -300,6 +300,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   @override
   Widget build(BuildContext context) {
     final favoriteNotifier = context.watch<FavoriteNotifier>();
+    final favoritePlaces = favoriteNotifier.favoritePlacesMap;
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(

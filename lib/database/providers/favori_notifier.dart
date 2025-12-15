@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:meteo_app/database/models/favori.dart';
 import 'package:meteo_app/database/providers/favori_provider.dart';
 
@@ -8,39 +8,37 @@ class FavoriteNotifier extends ChangeNotifier {
 
   List<Favorite> get favorites => _favorites;
 
-  Future init() async {
+  /// Initialisation : ouvre la DB et charge les favoris
+  Future<void> init() async {
     await _db.open();
     _favorites = await _db.getAllFavorites();
     notifyListeners();
   }
 
+  /// Vérifie si un lieu ou une ville est en favori
   bool isFavorite(String name) {
     return _favorites.any((f) => f.name == name && f.isFavorite);
   }
 
-
-  // Toggle simple d'un favori
-  Future toggleFavorite(Favorite fav) async {
-    fav.isFavorite = !fav.isFavorite;
-    await _db.update(fav);
-    notifyListeners();
-  }
-
-
-  Future toggleFavorite1(Favorite fav) async {
+  /// Toggle d’un favori
+  Future<void> toggleFavorite(Favorite fav) async {
     if (fav.id == null) {
+      // Nouvel élément
+      fav.isFavorite = true;
       await _db.insert(fav);
       _favorites.add(fav);
     } else {
-      // Mets à jour exactement l'état de fav.isFavorite
+      // Élement existant : inverse le statut
+      fav.isFavorite = !fav.isFavorite;
       await _db.update(fav);
       int index = _favorites.indexWhere((f) => f.id == fav.id);
       if (index != -1) _favorites[index] = fav;
     }
     notifyListeners();
   }
-  /// Nouvelle fonction pour sauvegarder une liste de POI
-  Future savePoi(List<Map<String, dynamic>> pois, String city) async {
+
+  /// Sauvegarder une liste de POI pour une ville
+  Future<void> savePoi(List<Map<String, dynamic>> pois, String city) async {
     for (var poi in pois) {
       bool exists = _favorites.any((f) => f.name == poi['name']);
       if (!exists) {
@@ -59,4 +57,60 @@ class FavoriteNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<Map<String, dynamic>> get favoritePlacesMap {
+    return _favorites
+        .where((fav) => fav.isFavorite) // garde uniquement les favoris
+        .map((fav) {
+      IconData icon;
+      List<Color> gradient;
+
+      switch (fav.category) {
+        case 'Parcs':
+          icon = Icons.park;
+          gradient = [Colors.greenAccent, Colors.lightGreen];
+          break;
+        case 'Restaurants':
+          icon = Icons.restaurant;
+          gradient = [Colors.orangeAccent, Colors.deepOrange];
+          break;
+        case 'Musées':
+          icon = Icons.museum;
+          gradient = [Colors.purpleAccent, Colors.deepPurple];
+          break;
+        case 'Gares':
+          icon = Icons.train;
+          gradient = [Colors.redAccent, Colors.red];
+          break;
+        case 'Universités':
+          icon = Icons.school;
+          gradient = [Colors.tealAccent, Colors.teal];
+          break;
+        default:
+          icon = Icons.place;
+          gradient = [Colors.blueAccent, Colors.lightBlue];
+      }
+
+      return {
+        'name': fav.name,
+        'icon': icon,
+        'gradient': gradient,
+      };
+    }).toList();
+  }
+
+
+  /// Recharge la liste depuis la base de données
+  Future<void> loadFavorites() async {
+    _favorites = await _db.getAllFavorites();
+    notifyListeners();
+  }
+
+  /// Supprime un favori
+  Future<void> deleteFavorite(Favorite fav) async {
+    if (fav.id != null) {
+      await _db.delete(fav.id!);
+      _favorites.removeWhere((f) => f.id == fav.id);
+      notifyListeners();
+    }
+  }
 }
