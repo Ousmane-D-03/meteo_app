@@ -21,21 +21,12 @@ class FavoriteNotifier extends ChangeNotifier {
   }
 
   /// Toggle d’un favori
-  Future<void> toggleFavorite(Favorite fav) async {
-    if (fav.id == null) {
-      // Nouvel élément
-      fav.isFavorite = true;
-      await _db.insert(fav);
-      _favorites.add(fav);
-    } else {
-      // Élement existant : inverse le statut
-      fav.isFavorite = !fav.isFavorite;
-      await _db.update(fav);
-      int index = _favorites.indexWhere((f) => f.id == fav.id);
-      if (index != -1) _favorites[index] = fav;
-    }
+  Future toggleFavorite(Favorite fav) async {
+    fav.isFavorite = !fav.isFavorite;
+    await _db.update(fav);
     notifyListeners();
   }
+
 
   /// Sauvegarder une liste de POI pour une ville
   Future<void> savePoi(List<Map<String, dynamic>> pois, String city) async {
@@ -113,4 +104,12 @@ class FavoriteNotifier extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Ajoute un favori
+  Future<void> addFavorite(Favorite fav) async {
+    fav.id = await _db.insert(fav).then((value) => value.id);
+    _favorites.add(fav);
+    notifyListeners();
+  }
+
 }

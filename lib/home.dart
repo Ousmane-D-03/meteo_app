@@ -45,24 +45,6 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 
   List<Map<String, dynamic>> selectedPoi = [];
 
-  List<Map<String, dynamic>> favoritePlaces = [
-    {
-      'name': 'Tour Eiffel',
-      'gradient': [Color(0xFF6B8DD6), Color(0xFF8E78C6)],
-      'icon': Icons.tour,
-    },
-    {
-      'name': 'Musée du Louvre',
-      'gradient': [Color(0xFFFFA726), Color(0xFFFF7043)],
-      'icon': Icons.museum,
-    },
-    {
-      'name': 'Sacré-Cœur',
-      'gradient': [Color(0xFFEF5350), Color(0xFFE91E63)],
-      'icon': Icons.church,
-    },
-  ];
-
   Future<void> _loadFavorites() async {
     allPlaces = await favoriteProvider.getAllFavorites();
     setState(() {}); // rafraîchit l'UI
@@ -77,13 +59,6 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 
   Future<void> _initDb() async {
     await favoriteProvider.open();
-  }
-  
-
-  //Récupération des lieux existants depuis la base de données au lieu de l'API
-  Future<void> _loadExistingPlaces() async {
-    allPlaces = await favoriteProvider.getAllFavorites();
-    setState(() {}); // rafraîchit l'UI
   }
 
   Future<void> _loadInitialCity() async {
@@ -401,6 +376,39 @@ Future<void> _defaultCity() async {
     }
   }
 
+  Future<void> _addFavoriteFromDialog(String placeName) async {
+    if (placeName.trim().isEmpty) return;
+
+    final favoriteNotifier = context.read<FavoriteNotifier>();
+
+    // Évite les doublons
+    bool alreadyExists = favoriteNotifier.favorites.any(
+          (f) => f.name.toLowerCase() == placeName.toLowerCase(),
+    );
+
+    if (alreadyExists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('"$placeName" est déjà dans les favoris')),
+      );
+      return;
+    }
+
+    Favorite newFav = Favorite(
+      name: placeName,
+      category: 'Manuel',
+      latitude: double.tryParse(_latitude) ?? 0.0,
+      longitude: double.tryParse(_longitude) ?? 0.0,
+      city: _cityName,
+      isFavorite: true,
+    );
+
+    await favoriteNotifier.addFavorite(newFav);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('"$placeName" ajouté aux favoris')),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -643,26 +651,28 @@ Future<void> _defaultCity() async {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            Expanded(child:
                             Text(
                               poi['name'],
                               style: const TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w400,
                               ),
+                            ),
                             ),
                             IconButton(
                               onPressed: () async {
+                                final favoriteNotifier = context.read<FavoriteNotifier>();
+
                                 int index = favoriteNotifier.favorites.indexWhere(
                                       (f) => f.name == poi['name'],
                                 );
 
                                 if (index != -1) {
+                                  // 🔁 Favori existant → toggle
                                   Favorite existingFav = favoriteNotifier.favorites[index];
-
-                                  // Toggle via le notifier
                                   await favoriteNotifier.toggleFavorite(existingFav);
 
-                                  // Affichage SnackBar
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
@@ -670,7 +680,24 @@ Future<void> _defaultCity() async {
                                             ? "${poi['name']} ajouté aux favoris"
                                             : "${poi['name']} retiré des favoris",
                                       ),
-                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                } else {
+                                  // ➕ Favori inexistant → création
+                                  Favorite newFav = Favorite(
+                                    name: poi['name'],
+                                    category: poi['category'] ?? 'Autre',
+                                    latitude: poi['latitude'],
+                                    longitude: poi['longitude'],
+                                    city: _cityName,
+                                    isFavorite: true,
+                                  );
+
+                                  await favoriteNotifier.toggleFavorite(newFav);
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("${poi['name']} ajouté aux favoris"),
                                     ),
                                   );
                                 }
@@ -683,11 +710,7 @@ Future<void> _defaultCity() async {
                                     ? Colors.amber
                                     : Colors.grey,
                               ),
-                            )
-
-
-
-
+                            ),
 
                           ],
                         ),
@@ -829,11 +852,7 @@ Future<void> _defaultCity() async {
               ),
             ),
 
-
-
             const SizedBox(height: 20),
-
-
 
               // Mes Lieux Favoris
               const Padding(
@@ -941,8 +960,11 @@ Future<void> _defaultCity() async {
                     child: const Text("Annuler"),
                   ),
                   ElevatedButton(
-                    onPressed: () {
-                      print(controller.text); // ici tu récupères le texte
+                    onPressed: () async {
+                      final placeName = controller.text.trim();
+
+                      await _addFavoriteFromDialog(placeName);
+
                       Navigator.pop(context);
                     },
                     child: const Text("OK"),

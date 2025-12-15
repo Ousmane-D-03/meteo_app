@@ -5,9 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ad1efb17-8f6f-4f08-97fd-69c9d118742b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/database/providers/favori_notifier.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/database/providers/favori_notifier.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/home.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/home.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/services/autre.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -130,6 +133,8 @@
       <workItem from="1765659491889" duration="210000" />
       <workItem from="1765659723466" duration="832000" />
       <workItem from="1765660584401" duration="6274000" />
+      <workItem from="1765817091525" duration="3617000" />
+      <workItem from="1765839535221" duration="148000" />
     </task>
     <servers />
   </component>
@@ -147,7 +152,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="Dart">
           <url>file://$PROJECT_DIR$/lib/home.dart</url>
-          <line>263</line>
+          <line>313</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>
